@@ -1,0 +1,45 @@
+---
+- name: Install nodejs and npm
+  hosts: 128.199.68.83
+  tasks:
+    - name: Update apt repo and cache
+      ansible.builtin.apt: update_cache=yes force_apt_get=true cache_valid_time=3600
+    - name: Install nodejs and npm
+      ansible.builtin.apt:
+        pkg:
+          - nodejs
+          - npm
+- name: Create a new linux user for node app
+  hosts: 128.199.68.83
+  tasks:
+    - name: Create linux user
+      ansible.builtin.user:
+        name: nodejs-app
+        comment: Manage nodejs app
+        group: admin
+
+- name: Deploy nodejs application
+  hosts: 128.199.68.83
+  become: true
+  become_user: nodejs-app
+  tasks:
+    - name: Unpack nodejs file
+      ansible.builtin.unarchive:
+        src: /Users/zqwang/bootcamp-projects/simple-nodejs/nodejs-app-1.0.0.tgz
+        dest: /home/nodejs-app
+    - name: Install dependecies
+      community.general.npm:
+        path: /home/nodejs-app/package
+    - name: Start the application
+      ansible.builtin.command:
+        chdir: /home/nodejs-app/package/app
+        cmd: node server
+      async: 1000
+      poll: 0
+    - name: Ensure app is running
+      shell: ps aux | grep node
+      register: app_status
+    - name: Print status
+      ansible.builtin.debug:
+        msg: 
+        - "{{ app_status }}"
