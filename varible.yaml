@@ -1,0 +1,5 @@
+
+    location: /Users/zqwang/bootcamp-projects/simple-nodejs
+    version: 1.0.0
+    destination: /home/nodejs-app
+    user_name: nodejs-app

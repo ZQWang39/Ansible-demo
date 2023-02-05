@@ -11,28 +11,42 @@
           - npm
 - name: Create a new linux user for node app
   hosts: 128.199.68.83
+  vars_files:
+    - varible.yaml
   tasks:
     - name: Create linux user
       ansible.builtin.user:
-        name: nodejs-app
+        name: "{{user_name}}"
         comment: Manage nodejs app
         group: admin
+      register: user_creation_result
+
+    - ansible.builtin.debug:
+        msg: 
+        - "{{user_creation_result.name}}"
 
 - name: Deploy nodejs application
   hosts: 128.199.68.83
   become: true
-  become_user: nodejs-app
+  become_user: "{{user_name}}"
+  vars_files:
+    - varible.yaml
   tasks:
     - name: Unpack nodejs file
       ansible.builtin.unarchive:
-        src: /Users/zqwang/bootcamp-projects/simple-nodejs/nodejs-app-1.0.0.tgz
-        dest: /home/nodejs-app
+        src: "{{location}}/nodejs-app-{{version}}.tgz"
+        dest: "{{destination}}"
+      register: user_creation_result
+
+    - ansible.builtin.debug:
+        msg: 
+        - "{{user_creation_result.dest}}"
     - name: Install dependecies
       community.general.npm:
-        path: /home/nodejs-app/package
+        path: "{{destination}}/package"
     - name: Start the application
       ansible.builtin.command:
-        chdir: /home/nodejs-app/package/app
+        chdir: "{{destination}}/package/app"
         cmd: node server
       async: 1000
       poll: 0
