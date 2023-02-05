@@ -12,7 +12,7 @@ variable "avail_zone" {}
 variable "env_prefix" {}
 variable "my_ip" {}
 variable "instance_type" {}
-variable "public_key" {}
+variable "public_key_location" {}
 
 
 # Create a VPC
@@ -92,7 +92,7 @@ resource "aws_default_security_group" "terraform-default-sg" {
 #Filter a AMI
 data "aws_ami" "latest-amazon-linux" {
   most_recent = true
-  owners = ["137112412989"] # Ubuntu
+  owners = ["137112412989"] # AWS
 
   filter {
     name   = "name"
@@ -108,12 +108,12 @@ data "aws_ami" "latest-amazon-linux" {
 #Provides an EC2 key pair resource
 resource "aws_key_pair" "terraform-key-pair" {
   key_name   = "terraform-key-pair"
-  public_key = var.public_key
+  public_key = "${file(var.public_key_location)}"
   }
 
 #EC2 instance
 resource "aws_instance" "web" {
-  ami = data.aws_ami.latest-ubuntu-linux.id
+  ami = data.aws_ami.latest-amazon-linux.id
   instance_type = var.instance_type
 
   subnet_id = aws_subnet.terraform-subnet-1.id
