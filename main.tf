@@ -13,12 +13,12 @@ variable "env_prefix" {}
 variable "my_ip" {}
 variable "instance_type" {}
 variable "public_key_location" {}
-variable "private_key_location" {}
 
 
 # Create a VPC
 resource "aws_vpc" "terraform-vpc-demo" {
   cidr_block = var.vpc_cidr_block
+  enable_dns_hostnames = true
   tags = {
     Name = "${var.env_prefix}-vpc"
   }
@@ -113,7 +113,7 @@ resource "aws_key_pair" "terraform-key-pair" {
   }
 
 #EC2 instance
-resource "aws_instance" "web" {
+resource "aws_instance" "web-1" {
   ami = data.aws_ami.latest-amazon-linux.id
   instance_type = var.instance_type
 
@@ -123,19 +123,34 @@ resource "aws_instance" "web" {
   associate_public_ip_address = true
   key_name = aws_key_pair.terraform-key-pair.key_name
   tags = {
-    Name = "${var.env_prefix}-terraform-demo"
+    Name = "${var.env_prefix}-terraform-demo-1"
   }
 }
 
-# Configure EC2 server everytime when provision new EC2 instances 
-resource "null_resource" "configure-server" {
-  triggers = {
-    server_ips = aws_instance.web.public_ip
-  }
+resource "aws_instance" "web-2" {
+  ami = data.aws_ami.latest-amazon-linux.id
+  instance_type = var.instance_type
 
-  provisioner "local-exec" {
-    working_dir = "/Users/zqwang/bootcamp-projects/ansible"
-    command = "ansible-playbook --inventory ${aws_instance.web.public_ip}, --private-key ${var.private_key_location} --user ec2-user deploy-docker-ec2.yaml"
-    
+  subnet_id = aws_subnet.terraform-subnet-1.id
+  vpc_security_group_ids = [aws_default_security_group.terraform-default-sg.id]
+  availability_zone = var.avail_zone
+  associate_public_ip_address = true
+  key_name = aws_key_pair.terraform-key-pair.key_name
+  tags = {
+    Name = "${var.env_prefix}-terraform-demo-2"
+  }
+}
+
+resource "aws_instance" "web-3" {
+  ami = data.aws_ami.latest-amazon-linux.id
+  instance_type = var.instance_type
+
+  subnet_id = aws_subnet.terraform-subnet-1.id
+  vpc_security_group_ids = [aws_default_security_group.terraform-default-sg.id]
+  availability_zone = var.avail_zone
+  associate_public_ip_address = true
+  key_name = aws_key_pair.terraform-key-pair.key_name
+  tags = {
+    Name = "${var.env_prefix}-terraform-demo-3"
   }
 }
