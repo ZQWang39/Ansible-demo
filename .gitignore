@@ -1,4 +1,5 @@
 hosts
+variable.yaml
 
 #local .terraform directory
 .terraform/*

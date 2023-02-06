@@ -1,0 +1,78 @@
+---
+- name: Deploy Docker
+  hosts: 54.252.210.37
+  become: true
+  tasks:
+    - name: Install Docker 
+      ansible.builtin.yum:
+        update_cache: true
+        name: docker
+        state: present
+
+    - name: Install Docker-compose 
+      ansible.builtin.get_url:
+        url: https://github.com/docker/compose/releases/latest/download/docker-compose-Linux-x86_64
+        dest: /usr/local/bin/docker-compose
+        mode: "0755"
+
+    - name: Start Docker daemon
+      ansible.builtin.systemd:
+        name: docker
+        state: started 
+
+    - name: Install Docker Python module   
+      ansible.builtin.pip:
+         name: 
+           - docker
+           - docker-compose
+
+- name: Create new Linux user
+  hosts: 54.252.210.37
+  become: true
+  vars_files:
+    - variable.yaml
+  tasks:
+    - name: Create a new linux user
+      ansible.builtin.user:
+        name: "{{user_name}}"
+        comment: Manage docker-compose
+        groups: adm,docker
+        append: true
+
+    - name: Reset ssh connection to allow user changes to affect 'current login user'
+      ansible.builtin.meta: reset_connection
+
+- name: Pull Docker images
+  hosts: 54.252.210.37
+  vars_files:
+    - variable.yaml
+  become: true
+  become_user: "{{user_name}}"
+  tasks:
+    - name: Pull redis image
+      community.docker.docker_image:
+        name: redis
+        source: pull
+
+
+- name: Start Docker containers
+  hosts: 54.252.210.37
+  become: true
+  become_user: "{{user_name}}"
+  vars_files:
+    - variable.yaml
+  tasks:
+    - name: Docker login
+      community.docker.docker_login:
+        registry_url: https://index.docker.io/v1/
+        username: "{{docker_id}}"
+        password: "{{docker_password}}"
+
+    - name: Copy Docker compose file
+      ansible.builtin.copy:
+        src: /Users/zqwang/bootcamp-projects/ansible/docker-compose.yaml
+        dest: "/home/{{user_name}}/docker-compose.yaml"
+    - name: Excute docker-compose.yaml file
+      community.docker.docker_compose:
+        project_src: "/home/{{user_name}}/"
+        state: present
