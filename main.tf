@@ -13,6 +13,7 @@ variable "env_prefix" {}
 variable "my_ip" {}
 variable "instance_type" {}
 variable "public_key_location" {}
+variable "private_key_location" {}
 
 
 # Create a VPC
@@ -121,19 +122,20 @@ resource "aws_instance" "web" {
   availability_zone = var.avail_zone
   associate_public_ip_address = true
   key_name = aws_key_pair.terraform-key-pair.key_name
-
-  #Excute command in the EC2 instance
-
-  # user_data = file("entry-script.sh")
-  # user_data = <<EOF
-  #                  #!/bin/bash
-  #                   sudo apt update -y && sudo snap install docker
-  #                   sudo snap start docker
-  #                   sudo usermod -aG root ubuntu
-  #                   sudo docker run -p 8080:80 nginx
-  #               EOF
   tags = {
     Name = "${var.env_prefix}-terraform-demo"
   }
 }
 
+# Configure EC2 server everytime when provision new EC2 instances 
+resource "null_resource" "configure-server" {
+  triggers = {
+    server_ips = aws_instance.web.public_ip
+  }
+
+  provisioner "local-exec" {
+    working_dir = "/Users/zqwang/bootcamp-projects/ansible"
+    command = "ansible-playbook --inventory ${aws_instance.web.public_ip}, --private-key ${var.private_key_location} --user ec2-user deploy-docker-ec2.yaml"
+    
+  }
+}
