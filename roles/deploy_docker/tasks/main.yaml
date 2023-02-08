@@ -1,0 +1,30 @@
+- name: Install Docker 
+  ansible.builtin.yum:
+    update_cache: true
+    name: docker
+    state: present
+
+- name: Install Docker-compose 
+  ansible.builtin.get_url:
+    url: https://github.com/docker/compose/releases/latest/download/docker-compose-Linux-x86_64
+    dest: /usr/local/bin/docker-compose
+    mode: "0755"
+
+- name: Start Docker daemon
+  ansible.builtin.systemd:
+    name: docker
+    state: started 
+
+- name: Add ec2-user to docker group
+  ansible.builtin.user:
+    name: ec2-user
+    groups: docker
+    append: true
+    
+- name: Reset ssh connection to allow user changes to affect 'current login user'
+  ansible.builtin.meta: reset_connection
+- name: Install Docker Python module   
+  ansible.builtin.pip:
+      name: 
+        - docker
+        - docker-compose

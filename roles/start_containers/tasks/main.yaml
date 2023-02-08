@@ -1,0 +1,14 @@
+- name: Docker login
+  community.docker.docker_login:
+    registry_url: https://index.docker.io/v1/
+    username: "{{docker_id}}"
+    password: "{{docker_password}}"
+
+- name: Copy Docker compose file
+  ansible.builtin.copy:
+    src: /Users/zqwang/bootcamp-projects/ansible/docker-compose.yaml
+    dest: /home/ec2-user/docker-compose.yaml
+- name: Excute docker-compose.yaml file
+  community.docker.docker_compose:
+    project_src: /home/ec2-user/
+    state: present
