@@ -65,7 +65,7 @@
     - name: Docker login
       community.docker.docker_login:
         registry_url: https://index.docker.io/v1/
-        username: "{{docker_id}}"
+        username: zqwang39
         password: "{{docker_password}}"
 
     - name: Copy Docker compose file
