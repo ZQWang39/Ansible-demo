@@ -1,4 +1,10 @@
 ---
+- name: Update kubeconfig file
+  hosts: localhost
+  tasks:
+    - name: Update kubeconfig file
+      ansible.builtin.command: aws eks update-kubeconfig --name myapp-eks-cluster 
+
 - name: Deploy app in a new namespace
   hosts: localhost
   tasks:
